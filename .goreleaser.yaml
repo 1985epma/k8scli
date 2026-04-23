@@ -1,0 +1,94 @@
+project_name: k8scli
+
+builds:
+  - id: k8scli
+    binary: k8scli
+    main: ./main.go
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+
+archives:
+  - id: default
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+    replacements:
+      amd64: x86_64
+      arm64: aarch64
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+
+release:
+  github:
+    owner: 1985epma
+    name: k8scli
+  draft: false
+  prerelease: auto
+
+brews:
+  - name: k8scli
+    repository:
+      owner: 1985epma
+      name: homebrew-k8scli
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: https://github.com/1985epma/k8scli
+    description: Kubernetes CLI helper tool
+    license: MIT
+    install: |
+      bin.install "k8scli"
+      generate_completions_from_executable(bin/"k8scli", "completion")
+    test: |
+      system "#{bin}/k8scli", "help"
+
+nfpms:
+  - id: default
+    package_name: k8scli
+    vendor: k8scli
+    maintainer: 1985epma
+    description: Kubernetes CLI helper tool
+    license: MIT
+    homepage: https://github.com/1985epma/k8scli
+    formats:
+      - deb
+      - rpm
+    targets:
+      - deb
+      - rpm
+    darwin:
+      pkg:
+        id: com.k8scli.k8scli
+    linux:
+      section: utils
+      priority: optional
+
+windows:
+  - id: msi
+    package_name: k8scli
+    target: msi
