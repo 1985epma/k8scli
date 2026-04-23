@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: latest
+          install-only: true
+
+      - name: Run GoReleaser
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+        run: goreleaser release --clean
+
+      - name: Upload standalone Linux and Windows binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -eu
+
+          version="${TAG#v}"
+          linux_src=""
+          windows_src=""
+
+          if [ -f dist/k8scli_linux_amd64_v1 ]; then
+            linux_src="dist/k8scli_linux_amd64_v1"
+          elif [ -f dist/k8scli_linux_amd64_v1/k8scli ]; then
+            linux_src="dist/k8scli_linux_amd64_v1/k8scli"
+          fi
+
+          if [ -f dist/k8scli_windows_amd64_v1 ]; then
+            windows_src="dist/k8scli_windows_amd64_v1"
+          elif [ -f dist/k8scli_windows_amd64_v1/k8scli.exe ]; then
+            windows_src="dist/k8scli_windows_amd64_v1/k8scli.exe"
+          fi
+
+          test -n "$linux_src"
+          test -n "$windows_src"
+
+          cp "$linux_src" "dist/k8scli_${version}_linux_amd64"
+          cp "$windows_src" "dist/k8scli_${version}_windows_amd64.exe"
+
+          gh release upload "$TAG" \
+            "dist/k8scli_${version}_linux_amd64" \
+            "dist/k8scli_${version}_windows_amd64.exe" \
+            --repo "${{ github.repository }}"

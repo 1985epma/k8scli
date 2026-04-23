@@ -451,6 +451,7 @@ COMMANDS:
   Context Management
     contexts         List all available contexts
     use <name>      Switch to a context (docker-desktop, eks, minikube)
+    completion      Generate shell completion scripts
 
   Pod Operations
     pods             List pods in namespace
@@ -476,6 +477,9 @@ EXAMPLES:
 
   # Switch to EKS cluster
   k8scli use arn:aws:eks:us-east-1:123456789:cluster/my-cluster
+
+  # Generate zsh completion
+  k8scli completion zsh > ~/.zsh/completion/_k8scli
 
   # List pods in namespace
   k8scli pods -n my-namespace
