@@ -1,3 +1,5 @@
+version: 2
+
 project_name: k8scli
 
 builds:
@@ -25,9 +27,6 @@ archives:
     files:
       - README.md
       - LICENSE
-    replacements:
-      amd64: x86_64
-      arm64: aarch64
 
 checksum:
   name_template: 'checksums.txt'
@@ -78,17 +77,3 @@ nfpms:
     formats:
       - deb
       - rpm
-    targets:
-      - deb
-      - rpm
-    darwin:
-      pkg:
-        id: com.k8scli.k8scli
-    linux:
-      section: utils
-      priority: optional
-
-windows:
-  - id: msi
-    package_name: k8scli
-    target: msi
