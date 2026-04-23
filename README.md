@@ -14,6 +14,40 @@ Homebrew tap scaffold for publishing: [homebrew-k8scli/README.md](homebrew-k8scl
 
 Windows MSI packaging scaffold: [windows/msi/README.md](windows/msi/README.md)
 
+## Installation
+
+### macOS
+
+```bash
+brew install 1985epma/k8scli/k8scli
+```
+
+### Linux
+
+```bash
+# Debian/Ubuntu
+sudo dpkg -i k8scli_*.deb
+
+# RHEL/Fedora
+sudo rpm -i k8scli_*.rpm
+```
+
+### Windows
+
+Download the MSI installer or portable EXE from the [releases](https://github.com/1985epma/k8scli/releases).
+
+## Security
+
+- `SAST` workflow runs `go test`, `govulncheck`, and `gosec`
+- `OWASP Top 10` workflow runs Semgrep rules for OWASP, Go, and secrets
+- Security workflows run on `main`, on pull requests, and on a weekly schedule where configured
+
+## Release
+
+- Release assets are published from Git tags via GitHub Actions and GoReleaser
+- Homebrew tap: [1985epma/homebrew-k8scli](https://github.com/1985epma/homebrew-k8scli)
+- Official releases: [1985epma/k8scli releases](https://github.com/1985epma/k8scli/releases)
+
 ## Local development
 
 ```bash
@@ -99,13 +133,7 @@ make install-local PREFIX="$HOME/.local" SHELL_NAME=zsh
 make package
 ```
 
-## Installation
-
-### macOS
-
-```bash
-brew install 1985epma/k8scli/k8scli
-```
+## Install details
 
 You can also install from source locally if you prefer:
 
@@ -119,21 +147,7 @@ If you want to test the Homebrew formula locally before publishing the tap:
 ./scripts/test-homebrew-tap.sh
 ```
 
-### Linux
-
-```bash
-# Debian/Ubuntu
-sudo dpkg -i k8scli_*.deb
-
-# RHEL/Fedora
-sudo rpm -i k8scli_*.rpm
-```
-
-Or download from the [releases](https://github.com/1985epma/k8scli/releases).
-
-### Windows
-
-Download the MSI installer or portable EXE from the [releases](https://github.com/1985epma/k8scli/releases).
+Release downloads are published at [1985epma/k8scli releases](https://github.com/1985epma/k8scli/releases).
 
 ## Usage
 
