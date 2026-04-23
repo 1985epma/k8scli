@@ -1,0 +1,29 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="k8scli"
+    Manufacturer="1985epma"
+    Version="$(var.Version)"
+    UpgradeCode="6A456F31-4D5F-4DAF-A12F-80B0E9C0A101"
+    Language="1033"
+    Scope="perMachine">
+    <SummaryInformation Description="k8scli Windows Installer" Manufacturer="1985epma" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of k8scli is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="k8scli" />
+    </StandardDirectory>
+
+    <Feature Id="MainFeature" Title="k8scli" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="K8scliExecutableComponent" Guid="*">
+        <File Id="K8scliExecutable" Source="$(var.SourceExe)" Name="k8scli.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

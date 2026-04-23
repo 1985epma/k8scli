@@ -124,6 +124,18 @@ sudo rpm -i k8scli_*.rpm
 
 Use o instalador MSI ou o binario portable publicado nas releases.
 
+Se quiser montar o MSI manualmente no ambiente de build Windows:
+
+```powershell
+pwsh -File scripts/build-msi.ps1 -Version 0.1.0
+```
+
+Guia do passo 2:
+
+```text
+windows/msi/README.md
+```
+
 ## Como verificar se instalou corretamente
 
 ```bash

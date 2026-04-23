@@ -8,6 +8,8 @@ Official repository: https://github.com/1985epma/k8scli
 
 Homebrew tap scaffold for publishing: [homebrew-k8scli/README.md](homebrew-k8scli/README.md)
 
+Windows MSI packaging scaffold: [windows/msi/README.md](windows/msi/README.md)
+
 ## Local development
 
 ```bash
@@ -38,13 +40,40 @@ Cluster commands such as `pods`, `pods-all`, `logs`, `set`, `scale`, and `cluste
 require a valid kubeconfig. Local commands such as `help`, `contexts`, and `use`
 work directly with the kubeconfig file.
 
+## Commands
+
+Local commands:
+
+- `help` - Show the built-in help screen
+- `contexts` - List contexts from the kubeconfig file
+- `use <context>` - Switch the current kubeconfig context
+- `completion [bash|zsh|fish|powershell]` - Generate shell completion scripts
+
+Cluster commands:
+
+- `pods` - List pods in the selected namespace
+- `pods-all` - List pods across all namespaces
+- `logs <pod> [container]` - Read pod logs
+- `set <deployment> <replicas>` - Quick scale to `2`, `4`, `6`, or `8`
+- `scale <deployment> <replicas>` - Scale to any replica count
+- `cluster` - Show cluster version, nodes, and namespaces
+
 ## Shell completion
 
 Generate completion output directly from the CLI:
 
 ```bash
+# Preview bash completion
+k8scli completion bash
+
 # Preview zsh completion
 k8scli completion zsh
+
+# Preview fish completion
+k8scli completion fish
+
+# Preview PowerShell completion
+k8scli completion powershell
 
 # Install zsh completion manually
 mkdir -p ~/.zsh/completion
@@ -105,11 +134,17 @@ Download the MSI installer or portable EXE from the [releases](https://github.co
 ## Usage
 
 ```bash
+# Show built-in help
+k8scli help
+
 # List contexts
 k8scli contexts
 
 # Switch context
 k8scli use docker-desktop
+
+# Generate completion for zsh
+k8scli completion zsh > ~/.zsh/completion/_k8scli
 
 # List pods
 k8scli pods
@@ -119,6 +154,9 @@ k8scli pods-all
 
 # Get logs
 k8scli logs my-pod -f
+
+# Get previous logs and last 50 lines
+k8scli logs my-pod -p -l 50
 
 # Quick scale (2, 4, 6, or 8 pods)
 k8scli set myapp 4
@@ -134,3 +172,9 @@ k8scli cluster
 
 - `-n, --namespace` - Namespace (default: default)
 - `--kubeconfig` - Path to kubeconfig file
+
+### Logs flags
+
+- `-f, --follow` - Stream logs continuously
+- `-p, --previous` - Show logs from the previous container instance
+- `-l, --lines` - Limit the number of log lines returned

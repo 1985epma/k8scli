@@ -4,7 +4,7 @@ ARGS ?= help
 PREFIX ?= /usr/local
 SHELL_NAME ?= zsh
 
-.PHONY: help build run install install-local completions package release-snapshot clean fmt
+.PHONY: help build run install install-local completions package release-snapshot clean fmt msi-help
 
 help:
 	@printf "Targets available:\n"
@@ -15,6 +15,7 @@ help:
 	@printf "  make install-local      Install binary and shell completion locally\n"
 	@printf "  make package            Build release artifacts with GoReleaser snapshot\n"
 	@printf "  make release-snapshot   Alias for package\n"
+	@printf "  make msi-help           Show how to build the Windows MSI\n"
 	@printf "  make fmt                Format the Go source\n"
 	@printf "  make clean              Remove the generated binary\n"
 
@@ -40,6 +41,10 @@ package: release-snapshot
 
 release-snapshot:
 	./scripts/release.sh snapshot
+
+msi-help:
+	@printf "Build the MSI on Windows with PowerShell:\n"
+	@printf "  pwsh -File scripts/build-msi.ps1 -Version 0.1.0\n"
 
 fmt:
 	$(GO) fmt ./...
