@@ -1,5 +1,9 @@
 # K8sCLI
 
+[![Release](https://github.com/1985epma/k8scli/actions/workflows/release.yml/badge.svg)](https://github.com/1985epma/k8scli/actions/workflows/release.yml)
+[![SAST](https://github.com/1985epma/k8scli/actions/workflows/sast.yml/badge.svg)](https://github.com/1985epma/k8scli/actions/workflows/sast.yml)
+[![OWASP Top 10](https://github.com/1985epma/k8scli/actions/workflows/owasp-top-10.yml/badge.svg)](https://github.com/1985epma/k8scli/actions/workflows/owasp-top-10.yml)
+
 Kubernetes CLI helper tool for managing clusters, pods, deployments, and more.
 
 See [install.md](install.md) for a full installation guide.
