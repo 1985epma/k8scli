@@ -2,6 +2,11 @@ version: 2
 
 project_name: k8scli
 
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
 builds:
   - id: k8scli
     binary: k8scli
@@ -17,22 +22,59 @@ builds:
       - arm64
     flags:
       - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/1985epma/k8scli/cmd.version={{ .Version }}
+      - -X github.com/1985epma/k8scli/cmd.commit={{ .Commit }}
+      - -X github.com/1985epma/k8scli/cmd.date={{ .Date }}
 
 archives:
   - id: default
-    format: tar.gz
+    ids:
+      - k8scli
+    formats:
+      - tar.gz
     format_overrides:
       - goos: windows
-        format: zip
+        formats:
+          - zip
     files:
       - README.md
       - LICENSE
 
+  # Standalone binaries (k8scli_<version>_<os>_<arch>[.exe]) uploaded as-is,
+  # replacing the old shell step that copied files out of dist/ by hand.
+  - id: binaries
+    ids:
+      - k8scli
+    formats:
+      - binary
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
 checksum:
   name_template: 'checksums.txt'
 
+# Keyless signature of the checksum file (needs `id-token: write` in the workflow).
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sigstore.json"
+    args:
+      - sign-blob
+      - --yes
+      - --bundle=${signature}
+      - ${artifact}
+    artifacts: checksum
+    output: true
+
+# SPDX SBOM for every archive (needs syft in PATH).
+sboms:
+  - id: archive-sboms
+    artifacts: archive
+    ids:
+      - default
+
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 
 changelog:
   sort: asc
@@ -49,8 +91,31 @@ release:
   draft: false
   prerelease: auto
 
+dockers_v2:
+  - id: k8scli
+    ids:
+      - k8scli
+    images:
+      - ghcr.io/1985epma/k8scli
+    tags:
+      - "{{ .Version }}"
+      - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    dockerfile: Dockerfile.goreleaser
+    labels:
+      org.opencontainers.image.title: k8scli
+      org.opencontainers.image.description: Kubernetes CLI helper tool
+      org.opencontainers.image.source: https://github.com/1985epma/k8scli
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.licenses: MIT
+
 brews:
   - name: k8scli
+    ids:
+      - default
     repository:
       owner: 1985epma
       name: homebrew-k8scli
@@ -64,10 +129,12 @@ brews:
       bin.install "k8scli"
       generate_completions_from_executable(bin/"k8scli", "completion")
     test: |
-      system "#{bin}/k8scli", "help"
+      assert_match version.to_s, shell_output("#{bin}/k8scli version")
 
 nfpms:
   - id: default
+    ids:
+      - k8scli
     package_name: k8scli
     vendor: k8scli
     maintainer: 1985epma

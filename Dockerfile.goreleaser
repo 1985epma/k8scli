@@ -1,0 +1,11 @@
+# Used by GoReleaser (dockers_v2): the binaries are built beforehand and
+# placed in the build context under <os>/<arch>/. For a build from source
+# see ./Dockerfile.
+FROM gcr.io/distroless/static:nonroot
+
+ARG TARGETPLATFORM
+
+COPY ${TARGETPLATFORM}/k8scli /usr/local/bin/k8scli
+
+USER nonroot:nonroot
+ENTRYPOINT ["/usr/local/bin/k8scli"]

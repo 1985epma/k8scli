@@ -23,6 +23,8 @@
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <Component Id="K8scliExecutableComponent" Guid="*">
         <File Id="K8scliExecutable" Source="$(var.SourceExe)" Name="k8scli.exe" KeyPath="yes" />
+        <!-- Make `k8scli` available from any terminal after installing. -->
+        <Environment Id="K8scliPath" Name="PATH" Value="[INSTALLFOLDER]" Action="set" Part="last" Permanent="no" System="yes" />
       </Component>
     </ComponentGroup>
   </Fragment>
