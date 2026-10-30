@@ -1,73 +1,154 @@
 name: Release
 
+# Runs when a v* tag is pushed. To redo a release, run this workflow manually
+# and pick the tag itself in "Use workflow from".
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
+  # Never publish from a commit that does not pass the regular checks.
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
+  sast:
+    name: SAST
+    uses: ./.github/workflows/sast.yml
+    permissions:
+      contents: read
+
   release:
+    name: GoReleaser
+    needs: [ci, sast]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # create the GitHub release and upload assets
+      packages: write # push the image to GHCR
+      id-token: write # keyless cosign signing and build attestations
+      attestations: write # store the provenance attestation
 
     steps:
+      - name: Require a tag
+        if: ${{ github.ref_type != 'tag' }}
+        run: |
+          echo "::error::Run this workflow from a tag (got ${GITHUB_REF})."
+          exit 1
+
+      - name: Check Homebrew tap token
+        env:
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+        run: |
+          if [ -z "${HOMEBREW_TAP_GITHUB_TOKEN}" ]; then
+            echo "::error::HOMEBREW_TAP_GITHUB_TOKEN is not set; failing before anything is published."
+            exit 1
+          fi
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
-      - name: Set up GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+      - name: Install syft (SBOM generation)
+        uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
-          version: latest
-          install-only: true
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          distribution: goreleaser
+          version: v2.19.0
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
-        run: goreleaser release --clean
 
-      - name: Upload standalone Linux and Windows binaries
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: dist/checksums.txt
+
+  msi:
+    name: Windows MSI
+    needs: release
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # upload the MSI to the release
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the released Windows executable
+        shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
         run: |
-          set -eu
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          gh release download $env:TAG --repo $env:GITHUB_REPOSITORY --pattern 'k8scli_*_windows_amd64.exe' --dir dist
+          $exe = Get-ChildItem dist -Filter 'k8scli_*_windows_amd64.exe' | Select-Object -First 1
+          if (-not $exe) { throw "Windows executable not found in release $env:TAG" }
+          Rename-Item $exe.FullName 'k8scli.exe'
 
-          version="${TAG#v}"
-          linux_src=""
-          windows_src=""
+      - name: Install WiX
+        shell: pwsh
+        run: dotnet tool install --global wix --version 4.0.5
 
-          if [ -f dist/k8scli_linux_amd64_v1 ]; then
-            linux_src="dist/k8scli_linux_amd64_v1"
-          elif [ -f dist/k8scli_linux_amd64_v1/k8scli ]; then
-            linux_src="dist/k8scli_linux_amd64_v1/k8scli"
-          fi
+      - name: Build MSI
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          $version = $env:TAG.TrimStart('v')
+          ./scripts/build-msi.ps1 -Version $version -SourceExe dist/k8scli.exe -OutputDir dist
 
-          if [ -f dist/k8scli_windows_amd64_v1 ]; then
-            windows_src="dist/k8scli_windows_amd64_v1"
-          elif [ -f dist/k8scli_windows_amd64_v1/k8scli.exe ]; then
-            windows_src="dist/k8scli_windows_amd64_v1/k8scli.exe"
-          fi
+      - name: Attest MSI provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*.msi
 
-          test -n "$linux_src"
-          test -n "$windows_src"
-
-          cp "$linux_src" "dist/k8scli_${version}_linux_amd64"
-          cp "$windows_src" "dist/k8scli_${version}_windows_amd64.exe"
-
-          gh release upload "$TAG" \
-            "dist/k8scli_${version}_linux_amd64" \
-            "dist/k8scli_${version}_windows_amd64.exe" \
-            --repo "${{ github.repository }}"
+      - name: Upload MSI to the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          $msi = Get-ChildItem dist -Filter '*.msi' | Select-Object -First 1
+          if (-not $msi) { throw "MSI not found" }
+          gh release upload $env:TAG $msi.FullName --repo $env:GITHUB_REPOSITORY --clobber
