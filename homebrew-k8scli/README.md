@@ -1,6 +1,10 @@
 # homebrew-k8scli
 
-Este diretorio contem o esqueleto inicial do tap Homebrew para o projeto `k8scli`.
+O tap Homebrew do `k8scli` vive em um repositorio proprio:
+
+```text
+https://github.com/1985epma/homebrew-k8scli
+```
 
 Repositorio oficial do app:
 
@@ -8,52 +12,31 @@ Repositorio oficial do app:
 https://github.com/1985epma/k8scli
 ```
 
-Repositorio esperado do tap:
+## Como o tap e atualizado
 
-```text
-https://github.com/1985epma/homebrew-k8scli
-```
+A formula **nao** e mantida a mao: o GoReleaser a gera e faz commit em
+`Formula/k8scli.rb` do tap a cada release (veja a secao `brews` em
+[.goreleaser.yaml](../.goreleaser.yaml)). Por isso este repositorio nao guarda
+mais uma copia da formula, que ficava desatualizada (sha256 e versao fixos).
 
-## Estrutura
-
-```text
-homebrew-k8scli/
-  Formula/
-    k8scli.rb
-```
-
-## Como publicar o tap
-
-1. Crie o repositorio `1985epma/homebrew-k8scli` no GitHub.
-2. Copie o conteudo deste diretorio para a raiz do repositorio do tap.
-3. Faça o primeiro push no branch `main`.
-4. Depois disso, o comando abaixo passa a ter um destino valido:
+Para o primeiro uso basta que o repositorio `1985epma/homebrew-k8scli` exista
+com o branch `main`. Depois disso:
 
 ```bash
-brew tap 1985epma/k8scli
+brew install 1985epma/k8scli/k8scli
 ```
 
-## Como testar localmente antes de publicar
+## Token
+
+O workflow de release precisa do secret `HOMEBREW_TAP_GITHUB_TOKEN`, com
+permissao de escrita no repositorio do tap. Se o secret nao existir, o
+workflow falha logo no inicio, antes de publicar qualquer artefato.
+
+## Como testar localmente
 
 ```bash
 ./scripts/test-homebrew-tap.sh
 ```
 
-## Publicacao automatica via GoReleaser
-
-O arquivo [/.goreleaser.yaml](../.goreleaser.yaml) ja foi preparado para abrir commits no tap
-`1985epma/homebrew-k8scli` quando uma release for executada com o token certo no ambiente.
-
-Variavel esperada:
-
-```bash
-export HOMEBREW_TAP_GITHUB_TOKEN=seu_token
-```
-
-Esse token precisa ter permissao de escrita no repositorio do tap.
-
-## Estado atual
-
-- O repositorio oficial `1985epma/k8scli` ainda nao contem o codigo Go publicado nem releases versionadas; hoje ele mostra apenas `README.md`.
-- Por isso, a formula incluida em `Formula/k8scli.rb` deve ser tratada como scaffold do tap e sera realmente utilizavel quando o codigo ou a primeira release estiverem publicados no repositorio oficial.
-- Depois da primeira release versionada, o GoReleaser deve assumir a atualizacao da formula automaticamente.
+O script monta uma formula temporaria a partir do workspace atual, instala em um
+tap local descartavel, roda `brew test` e remove tudo no final.
