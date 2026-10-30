@@ -3,7 +3,7 @@
 set -eu
 
 MODE=${1:-snapshot}
-ROOT_DIR=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
+ROOT_DIR=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
 
 case "$MODE" in
 	-h|--help|help)

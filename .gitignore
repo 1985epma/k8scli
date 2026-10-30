@@ -1,5 +1,7 @@
 dist/
+dist-release-*/
 k8scli
 k8s-cli
 .tools/
-dist-release-0.1.0/
+coverage.out
+*.msi

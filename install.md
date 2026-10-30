@@ -22,7 +22,7 @@ brew install 1985epma/k8scli/k8scli
 Depois valide:
 
 ```bash
-k8scli help
+k8scli version
 ```
 
 Se preferir instalar a partir do codigo local do repositorio:
@@ -43,7 +43,7 @@ Se quiser testar a formula Homebrew localmente antes de publicar o tap:
 ./scripts/test-homebrew-tap.sh
 ```
 
-Observacao: esse teste usa um tarball gerado do workspace local atual para validar a formula antes ou depois da publicacao.
+Observacao: esse teste gera uma formula temporaria a partir de um tarball do workspace local atual. A formula publicada no tap e gerada pelo GoReleaser a cada release.
 
 ## Opcao 2: instalar a partir do codigo-fonte
 
@@ -69,7 +69,7 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 Depois valide:
 
 ```bash
-k8scli help
+k8scli version
 ```
 
 ## Opcao 3: instalar com completion de shell
@@ -108,23 +108,46 @@ Os artefatos publicados ficam em:
 https://github.com/1985epma/k8scli/releases
 ```
 
-### Linux Debian ou Ubuntu
+### Linux (download com verificacao de checksum)
 
 ```bash
-sudo dpkg -i k8scli_*.deb
+VERSION=0.1.1   # troque pela release desejada
+ARCH=amd64      # ou arm64
+BASE="https://github.com/1985epma/k8scli/releases/download/v${VERSION}"
+
+curl -fsSLO "${BASE}/k8scli_${VERSION}_linux_${ARCH}.deb"
+curl -fsSLO "${BASE}/checksums.txt"
+sha256sum --ignore-missing -c checksums.txt
 ```
 
-### Linux RHEL, Fedora ou derivados
+Debian ou Ubuntu:
 
 ```bash
-sudo rpm -i k8scli_*.rpm
+sudo dpkg -i "k8scli_${VERSION}_linux_${ARCH}.deb"
+```
+
+RHEL, Fedora ou derivados (baixe o `.rpm` da mesma forma):
+
+```bash
+sudo rpm -i "k8scli_${VERSION}_linux_${ARCH}.rpm"
+```
+
+Nas releases publicadas com o pipeline de supply chain, o `checksums.txt` tambem
+tem assinatura cosign (`checksums.txt.sigstore.json`), SBOMs e attestation de
+proveniencia. Veja o passo a passo de verificacao no [README](README.md#verify-a-release).
+
+### Docker
+
+```bash
+docker run --rm -v ~/.kube:/home/nonroot/.kube:ro ghcr.io/1985epma/k8scli:latest pods
 ```
 
 ### Windows
 
-Use o instalador MSI ou o binario portable publicado nas releases.
+Use o instalador MSI (ele adiciona o `k8scli` ao `PATH`) ou o binario portable
+`k8scli_<versao>_windows_amd64.exe` publicado nas releases.
 
-Se quiser montar o MSI manualmente no ambiente de build Windows:
+Se quiser montar o MSI manualmente no ambiente de build Windows (apos `make package`):
 
 ```powershell
 pwsh -File scripts/build-msi.ps1 -Version 0.1.0
@@ -139,7 +162,7 @@ windows/msi/README.md
 ## Como verificar se instalou corretamente
 
 ```bash
-k8scli help
+k8scli version
 k8scli contexts
 ```
 
@@ -210,5 +233,5 @@ make install
 make install-local
 
 # testar
-k8scli help
+k8scli version
 ```

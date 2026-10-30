@@ -1,0 +1,8 @@
+.git
+.github
+dist
+docs
+homebrew-k8scli
+windows
+k8scli
+*.md

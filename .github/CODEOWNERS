@@ -1,0 +1,5 @@
+# Every change needs a review from the maintainer.
+*                       @1985epma
+/.github/               @1985epma
+/.goreleaser.yaml       @1985epma
+/scripts/               @1985epma
