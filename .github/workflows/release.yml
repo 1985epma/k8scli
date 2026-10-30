@@ -65,7 +65,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          # Always the newest patch release: go.mod's minimum (1.26.0) ships a
+          # stdlib with known vulnerabilities that govulncheck rightly rejects.
+          go-version: stable
+          check-latest: true
 
       - name: Install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
