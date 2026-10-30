@@ -30,7 +30,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: go.mod
+          # Always the newest patch release: go.mod's minimum (1.26.0) ships a
+          # stdlib with known vulnerabilities that govulncheck rightly rejects.
+          go-version: stable
+          check-latest: true
 
       - name: Install SAST tools
         run: |
