@@ -9,6 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/1985epma/k8scli/internal/kubeconfig"
 )
 
 // quickReplicas are the values accepted by the `set` shortcut.
@@ -132,7 +134,7 @@ func (a *App) scaleDeployment(cmd *cobra.Command, name string, replicas int32, o
 }
 
 func looksLikeProduction(contextName string) bool {
-	return strings.Contains(strings.ToLower(contextName), "prod")
+	return kubeconfig.LooksLikeProduction(contextName)
 }
 
 // confirm asks a yes/no question; anything but "y"/"yes" (including EOF) is a no.

@@ -111,3 +111,42 @@ func TestRESTConfig(t *testing.T) {
 		t.Errorf("Host = %q", config.Host)
 	}
 }
+
+func TestRESTConfigForDoesNotChangeTheFile(t *testing.T) {
+	path := write(t, sample)
+
+	config, err := New(path).RESTConfigFor("alpha")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if config.Host != "https://c1.example.com" {
+		t.Errorf("Host = %q", config.Host)
+	}
+	if got := New(path).CurrentContext(); got != "zeta" {
+		t.Errorf("CurrentContext() = %q; the file must keep zeta", got)
+	}
+
+	if _, err := New(path).RESTConfigFor("nope"); err == nil {
+		t.Error("expected an error for an unknown context")
+	}
+}
+
+func TestPaths(t *testing.T) {
+	path := write(t, sample)
+	if got := New(path).Paths(); len(got) != 1 || got[0] != path {
+		t.Errorf("Paths() = %v; want [%s]", got, path)
+	}
+}
+
+func TestLooksLikeProduction(t *testing.T) {
+	for name, want := range map[string]bool{
+		"eks-prod-us-east-1": true, "PROD": true, "my-Production-cluster": true,
+		"docker-desktop": false, "staging": false, "": false,
+		// Known limits of a name heuristic, documented rather than hidden.
+		"product-catalog-dev": true, "live-eu": false,
+	} {
+		if got := LooksLikeProduction(name); got != want {
+			t.Errorf("LooksLikeProduction(%q) = %v; want %v", name, got, want)
+		}
+	}
+}

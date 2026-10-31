@@ -48,6 +48,9 @@ printf 'Building k8scli %s...\n' "$VERSION"
 mkdir -p "$BIN_DIR"
 install "$BUILT_BIN" "$BIN_DIR/k8scli"
 printf 'Installed binary: %s\n' "$BIN_DIR/k8scli"
+# k8scli-ui is the same binary under another name: it opens the web console.
+ln -sf k8scli "$BIN_DIR/k8scli-ui"
+printf 'Installed launcher: %s\n' "$BIN_DIR/k8scli-ui"
 
 case "$SHELL_NAME" in
 	zsh)

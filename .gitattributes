@@ -1,0 +1,18 @@
+# Line endings. Tests compare golden files byte for byte and shell scripts must run on Linux, so
+# these stay LF on every platform, even in a Windows checkout with core.autocrlf.
+*.golden text eol=lf
+**/testdata/** text eol=lf
+*.sh text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.go text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.json text eol=lf
+
+# Windows scripts and shims keep CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf

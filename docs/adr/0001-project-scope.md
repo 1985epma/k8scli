@@ -1,6 +1,6 @@
 # ADR 0001: Project scope and roadmap
 
-- Status: accepted
+- Status: accepted (amended by [ADR 0002](0002-local-web-console.md) and [ADR 0003](0003-guided-write-actions.md))
 - Date: 2026-10-30
 
 ## Context
@@ -21,7 +21,14 @@ A command belongs in k8scli when it meets all of these:
 3. It can be implemented on `kubernetes.Interface` and tested with the fake clientset.
 4. Anything that changes the cluster shows the context and namespace first, and supports `--dry-run`.
 
+> ADR 0002 adds a local web console (`k8scli serve`, `k8scli ui`) to the scope, and ADR 0003 gives it
+> a short list of guided write actions that the CLI does not have (deploy, autoscale, ConfigMap
+> edits, ...). The criteria above still apply to everything the web UI does, except that those
+> actions show the equivalent `kubectl` command instead of a `k8scli` one.
+
 ### Non-goals
+
+These apply to the CLI and, except for the guided actions of ADR 0003, to the web UI.
 
 - Generic `apply`, `delete`, `edit`, `patch` or CRD management
 - Plugin system or cluster provisioning

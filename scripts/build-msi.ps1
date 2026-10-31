@@ -1,6 +1,7 @@
 param(
     [string]$Version = "0.1.0",
     [string]$SourceExe = "",
+    [string]$SourceLauncher = "",
     [string]$OutputDir = ""
 )
 
@@ -24,11 +25,17 @@ if ([string]::IsNullOrWhiteSpace($SourceExe)) {
     $SourceExe = Join-Path $repoRoot "dist/k8scli_windows_amd64_v1/k8scli.exe"
 }
 
+if ([string]::IsNullOrWhiteSpace($SourceLauncher)) {
+    # The k8scli-ui.cmd shim lives in the repository, next to the WiX sources.
+    $SourceLauncher = Join-Path $repoRoot "windows/k8scli-ui.cmd"
+}
+
 if ([string]::IsNullOrWhiteSpace($OutputDir)) {
     $OutputDir = Join-Path $repoRoot "dist"
 }
 
 $SourceExe = (Resolve-Path $SourceExe).Path
+$SourceLauncher = (Resolve-Path $SourceLauncher).Path
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 $OutputDir = (Resolve-Path $OutputDir).Path
 
@@ -50,6 +57,7 @@ $outputPath = Join-Path $OutputDir "k8scli_${Version}_windows_amd64.msi"
     -arch x64 `
     -d Version=$msiVersion `
     -d SourceExe=$SourceExe `
+    -d SourceLauncher=$SourceLauncher `
     -o $outputPath
 
 if ($LASTEXITCODE -ne 0) {

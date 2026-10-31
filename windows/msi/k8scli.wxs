@@ -26,6 +26,10 @@
         <!-- Make `k8scli` available from any terminal after installing. -->
         <Environment Id="K8scliPath" Name="PATH" Value="[INSTALLFOLDER]" Action="set" Part="last" Permanent="no" System="yes" />
       </Component>
+      <!-- Windows has no symlinks: k8scli-ui.cmd runs `k8scli.exe ui` (the web console). -->
+      <Component Id="K8scliLauncherComponent" Guid="*">
+        <File Id="K8scliLauncher" Source="$(var.SourceLauncher)" Name="k8scli-ui.cmd" KeyPath="yes" />
+      </Component>
     </ComponentGroup>
   </Fragment>
 </Wix>

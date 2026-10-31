@@ -47,7 +47,9 @@ func NewApp() *App {
 
 // Execute runs the CLI with the given context and returns the exit error.
 func Execute(ctx context.Context) error {
-	return NewRootCmd(NewApp()).ExecuteContext(ctx)
+	root := NewRootCmd(NewApp())
+	root.SetArgs(LauncherArgs(os.Args)[1:])
+	return root.ExecuteContext(ctx)
 }
 
 // NewRootCmd builds the command tree for app.
@@ -91,6 +93,9 @@ func NewRootCmd(app *App) *cobra.Command {
 		newUseCmd(app),
 		newContextsCmd(app),
 		newVersionCmd(app),
+		newServeCmd(app),
+		newUICmd(app),
+		newDRCmd(app),
 	)
 
 	return rootCmd

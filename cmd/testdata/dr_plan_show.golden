@@ -1,0 +1,25 @@
+Plan:      shop-lab
+Context:   kind-lab
+Standby:   kind-standby
+Targets:   RTO 30m, RPO 24h
+Provider:  kind (name=lab)
+Lab only:  yes (drills are allowed)
+
+Stopping (dr down)
+  1. prepare    suspend CronJobs in shop
+  2. apps       web (tier 2, http http://localhost:8080/healthz) -> api (tier 1, pods ready)
+  3. databases  shop-db (cnpg, tier 0)
+  4. nodes      cordon and drain the worker nodes
+  5. power      power off with kind
+
+Starting (dr up)
+  1. power      power on with kind, then wait for the API
+  2. nodes      uncordon the nodes that were cordoned
+  3. databases  shop-db (cnpg, tier 0)
+  4. apps       api (tier 1, pods ready) -> web (tier 2, http http://localhost:8080/healthz)
+  5. prepare    resume the CronJobs that were suspended
+
+Confirmation phrases
+  dr down (apps and databases)   none (--execute is enough)
+  dr down (everything)           "stop kind-lab"
+  dr up                          none (--execute is enough)

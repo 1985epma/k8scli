@@ -1,0 +1,40 @@
+version: 1
+name: shop
+context: kind-k8scli-lab
+drContext: kind-k8scli-dr
+targets:
+  rto: 30m
+  rpo: 15m
+databases:
+  - name: shop-db
+    namespace: shop
+    kind: cnpg
+    ref: shop-pg
+    tier: 0
+    maxBackupAge: 24h
+    rpo: 5m
+apps:
+  - name: api
+    namespace: shop
+    tier: 1
+    dependsOn: [shop-db]
+    health:
+      kind: pods-ready
+      timeout: 5m
+  - name: web
+    namespace: shop
+    tier: 2
+    dependsOn: [api]
+    workloads: [web, web-static]
+    rto: 10m
+    health:
+      kind: http
+      url: https://shop.example.com/healthz
+      status: 200
+provider:
+  kind: kind
+  params:
+    name: k8scli-lab
+safety:
+  labOnly: true
+  requireBackupMaxAge: 48h
