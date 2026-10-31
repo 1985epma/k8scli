@@ -159,6 +159,28 @@ Guia do passo 2:
 windows/msi/README.md
 ```
 
+## Console web e assistentes de configuracao
+
+Depois de instalar, `k8scli ui` (ou `k8scli-ui`) abre o console web no navegador. `k8scli serve`
+faz o mesmo e so imprime o link. O console escuta somente em `127.0.0.1` e o link impresso traz um
+token de sessao. A interface e em ingles e traz assistentes passo a passo: **Connect a cluster**,
+**Install the CLI** (para outras maquinas) e **Shell completion**.
+
+```bash
+k8scli ui
+```
+
+O `k8scli-ui` e o mesmo binario com outro nome (um link para `k8scli`): o Homebrew, os pacotes
+`.deb`/`.rpm`, `make install` e `make install-local` o instalam. No Windows, o zip e o MSI trazem um `k8scli-ui.cmd` que executa `k8scli.exe ui`; com o `.exe` portatil avulso, use `k8scli ui`.
+A pagina **Apps (Helm)** instala aplicativos no cluster a partir de um catalogo de 24 apps revisados
+(por exemplo Metrics Server, cert-manager, Traefik, Argo CD e CloudNativePG) e tambem permite buscar charts
+no Artifact Hub. O Helm ja vem embutido no binario, entao nao e preciso instalar o `helm`. Toda
+instalacao mostra antes o que sera criado (**Review changes**); para um chart vindo da busca, voce ainda
+digita o nome do chart para confirmar. `--catalog-only` desliga a busca. O console tambem tem a pagina
+**Resilience** (recuperacao de desastre, veja [docs/dr.md](docs/dr.md)), em modo somente leitura a menos que
+voce inicie com `--allow-dr-runs`.
+Veja o [guia do console web](docs/web-console.md) e a secao "Web console" do [README](README.md#web-console).
+
 ## Como verificar se instalou corretamente
 
 ```bash
