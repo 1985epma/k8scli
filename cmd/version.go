@@ -14,7 +14,8 @@ var (
 	date    = "unknown"
 )
 
-func versionString() string {
+// shortVersion is the bare version, e.g. v0.1.1.
+func shortVersion() string {
 	v := version
 	if v == "dev" {
 		// Binaries built with `go install module@version` carry their version here.
@@ -22,7 +23,11 @@ func versionString() string {
 			v = info.Main.Version
 		}
 	}
-	return fmt.Sprintf("k8scli version %s (commit %s, built %s)", v, commit, date)
+	return v
+}
+
+func versionString() string {
+	return fmt.Sprintf("k8scli version %s (commit %s, built %s)", shortVersion(), commit, date)
 }
 
 func newVersionCmd(app *App) *cobra.Command {
