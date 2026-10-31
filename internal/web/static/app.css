@@ -80,7 +80,11 @@ code, pre, kbd { font-family: var(--mono); }
 
 .sidebar { width: 236px; flex: none; display: flex; flex-direction: column; background: var(--surface); border-right: 1px solid var(--line); overflow: hidden; transition: width .2s; }
 .brand { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 14px; border-bottom: 1px solid var(--line); flex: none; }
-.brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); font-weight: 700; flex: none; }
+/* The mark is the k8scli-ui icon (assets/icons) drawn with the theme tokens, so it follows light and dark. */
+.brand-mark { display: block; width: 32px; height: 32px; flex: none; }
+.brand-mark .mk-tile, .brand-mark .mk-cut { fill: var(--accent); }
+.brand-mark .mk-win { fill: var(--accent-ink); }
+.brand-mark .mk-glyph { fill: none; stroke: var(--accent); stroke-width: 108; stroke-linecap: round; stroke-linejoin: round; }
 .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
 .nav { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
 .nav-group { padding: 14px 10px 4px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }

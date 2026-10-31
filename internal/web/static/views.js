@@ -32,7 +32,13 @@ export function sidebarHTML(S) {
 
   return `
     <div class="brand">
-      <div class="brand-mark mono">k8</div>
+      <svg class="brand-mark" viewBox="0 0 1024 1024" width="32" height="32" role="img" aria-label="k8scli">
+        <rect class="mk-tile" x="32" y="32" width="960" height="960" rx="200"/>
+        <rect class="mk-win" x="120" y="168" width="784" height="688" rx="96"/>
+        <rect class="mk-cut" x="120" y="328" width="784" height="64"/>
+        <path class="mk-glyph" d="M318 520 L466 622 L318 724"/>
+        <path class="mk-glyph" d="M588 724 H736"/>
+      </svg>
       <div class="brand-text"><strong>k8scli</strong><span class="muted small">Web console</span></div>
     </div>
     <nav class="nav">${nav}</nav>

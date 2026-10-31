@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="k8scli-ui">
+  <title>k8scli-ui</title>
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="#2B5CE6"/>
+  <rect x="212" y="252" width="600" height="520" rx="72" fill="#FFFFFF"/>
+  <rect x="212" y="372" width="600" height="40" fill="#2B5CE6"/>
+  <circle cx="276" cy="312" r="24" fill="#2B5CE6"/>
+  <circle cx="344" cy="312" r="24" fill="#2B5CE6"/>
+  <circle cx="412" cy="312" r="24" fill="#2B5CE6"/>
+  <path d="M338 500 L448 586 L338 672" fill="none" stroke="#2B5CE6" stroke-width="64" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M510 672 H684" fill="none" stroke="#2B5CE6" stroke-width="64" stroke-linecap="round"/>
+</svg>
