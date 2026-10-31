@@ -31,6 +31,10 @@ Se preferir instalar a partir do codigo local do repositorio:
 make install-local
 ```
 
+No macOS isso tambem instala o `k8scli-ui.app` (com icone) em `~/Applications`; use
+`./scripts/install.sh --no-app` para pular. Para gerar so o app: `make app`. Mais detalhes, incluindo os
+icones no Linux e no Windows, em [docs/installing.md](docs/installing.md) (em ingles).
+
 O tap oficial do Homebrew fica em:
 
 ```text

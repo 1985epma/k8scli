@@ -23,6 +23,10 @@ Windows MSI packaging: [windows/msi/README.md](windows/msi/README.md)
 brew install 1985epma/k8scli/k8scli
 ```
 
+For a double-clickable `k8scli-ui.app` with its icon (Finder, Dock, Launchpad), download
+`k8scli-ui_<version>_macOS_<arch>.zip` from the releases, or run `make install-local` from a clone, which
+copies the app to `~/Applications`. See [docs/installing.md](docs/installing.md).
+
 ### Linux
 
 ```bash
@@ -41,10 +45,14 @@ sudo dpkg -i "k8scli_${VERSION}_linux_${ARCH}.deb"
 # sudo rpm -i "k8scli_${VERSION}_linux_${ARCH}.rpm"
 ```
 
+The packages also add `k8scli` and `k8scli-ui` entries, with their icons, to the application menu.
+
 ### Windows
 
-Download the MSI installer (it adds `k8scli` to the `PATH`) or the portable
-`k8scli_<version>_windows_amd64.exe` from the [releases](https://github.com/1985epma/k8scli/releases).
+Download the MSI installer (it adds `k8scli` to the `PATH` and creates Start Menu shortcuts with the
+k8scli and k8scli-ui icons) or the portable `k8scli_<version>_windows_amd64.exe` from the
+[releases](https://github.com/1985epma/k8scli/releases). Installing, icons and the optional desktop
+shortcut: [docs/installing.md](docs/installing.md).
 
 ### Docker
 
@@ -351,8 +359,11 @@ If you use the local installer script, it also installs the generated completion
 ## Packaging and local install
 
 ```bash
-# Install binary + zsh completion under /usr/local
+# Install binary + zsh completion under /usr/local (on macOS also k8scli-ui.app in ~/Applications)
 make install-local
+
+# Only build the macOS app, dist/k8scli-ui.app
+make app
 
 # Use a custom prefix and shell
 make install-local PREFIX="$HOME/.local" SHELL_NAME=zsh

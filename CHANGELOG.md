@@ -18,6 +18,13 @@ from Conventional Commits by GoReleaser.
 - Cosign-signed `checksums.txt`, SPDX SBOMs and build provenance attestations
 - CI workflow (build, vet, tests on Linux/macOS/Windows, golangci-lint, ShellCheck, Docker, MSI), Dependabot, CODEOWNERS, SECURITY.md, CONTRIBUTING.md
 
+**Icons** (see [docs/installing.md](docs/installing.md))
+
+- Icons for `k8scli` (a terminal prompt) and `k8scli-ui` (the same mark in a window), in `assets/icons/`
+- macOS: `k8scli-ui.app` (double-click opens the console in Terminal), built by `make app` and by `make install-local` into `~/Applications`; a zip per architecture is attached to releases. Signed ad hoc, not notarized
+- Linux: `.deb` and `.rpm` install two application menu entries and the icons in every size, and refresh the icon cache
+- Windows: `k8scli.exe` carries its icon, manifest and version information; the MSI adds Start Menu shortcuts for the console and a terminal, an optional desktop shortcut and the Apps and features icon
+
 **Web console** (see [docs/web-console.md](docs/web-console.md))
 
 - `serve` command: a local web console embedded in the binary, with `--addr`, `--read-only` and `--allow-remote`

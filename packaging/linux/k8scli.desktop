@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=k8scli
+GenericName=Kubernetes command line helper
+Comment=Open a terminal with the k8scli command line helper
+# Show the help, then keep the terminal open for the next command.
+Exec=sh -c "k8scli help; exec sh"
+Icon=k8scli
+Terminal=true
+StartupNotify=false
+Categories=Development;ConsoleOnly;
+Keywords=kubernetes;k8s;kubectl;cluster;cli;

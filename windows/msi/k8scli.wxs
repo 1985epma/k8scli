@@ -10,12 +10,28 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of k8scli is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
+    <!-- Icons stored in the MSI: the shortcuts and "Apps & features" use them. WiX wants an extension on the Id. -->
+    <Icon Id="K8scli.ico" SourceFile="$(var.IconsDir)\k8scli.ico" />
+    <Icon Id="K8scliUi.ico" SourceFile="$(var.IconsDir)\k8scli-ui.ico" />
+    <Property Id="ARPPRODUCTICON" Value="K8scli.ico" />
+
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="k8scli" />
     </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="k8scli" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
 
     <Feature Id="MainFeature" Title="k8scli" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="StartMenuShortcutsComponent" />
+    </Feature>
+
+    <!-- Off by default (Level 2 is above the default install level 1). Turn it on with
+         msiexec /i k8scli.msi ADDLOCAL=MainFeature,DesktopShortcutFeature -->
+    <Feature Id="DesktopShortcutFeature" Title="Desktop shortcut for the web console" Level="2">
+      <ComponentRef Id="DesktopShortcutComponent" />
     </Feature>
   </Package>
 
@@ -30,6 +46,47 @@
       <Component Id="K8scliLauncherComponent" Guid="*">
         <File Id="K8scliLauncher" Source="$(var.SourceLauncher)" Name="k8scli-ui.cmd" KeyPath="yes" />
       </Component>
+      <!-- The "k8scli (terminal)" shortcut starts this: a prompt with k8scli on the PATH. -->
+      <Component Id="K8scliTerminalComponent" Guid="*">
+        <File Id="K8scliTerminal" Source="$(var.SourceTerminal)" Name="k8scli-terminal.cmd" KeyPath="yes" />
+      </Component>
+      <Component Id="K8scliIconsComponent" Guid="*">
+        <File Id="K8scliIcoFile" Source="$(var.IconsDir)\k8scli.ico" Name="k8scli.ico" KeyPath="yes" />
+        <File Id="K8scliUiIcoFile" Source="$(var.IconsDir)\k8scli-ui.ico" Name="k8scli-ui.ico" />
+      </Component>
     </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <!-- Start menu folder "k8scli": the web console and a terminal for the CLI. The HKCU value is the
+         component's key path (the usual pattern for shortcuts) and RemoveFolder cleans the folder up. -->
+    <Component Id="StartMenuShortcutsComponent" Directory="ApplicationProgramsFolder" Guid="*">
+      <Shortcut Id="WebConsoleStartMenuShortcut"
+                Name="k8scli web console"
+                Description="Open the k8scli web console for your Kubernetes clusters"
+                Target="[INSTALLFOLDER]k8scli.exe"
+                Arguments="ui"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="K8scliUi.ico" />
+      <Shortcut Id="TerminalStartMenuShortcut"
+                Name="k8scli (terminal)"
+                Description="Open a command prompt with k8scli ready to use"
+                Target="[INSTALLFOLDER]k8scli-terminal.cmd"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="K8scli.ico" />
+      <RemoveFolder Id="RemoveApplicationProgramsFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\k8scli" Name="startmenu" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <Component Id="DesktopShortcutComponent" Directory="DesktopFolder" Guid="*">
+      <Shortcut Id="WebConsoleDesktopShortcut"
+                Name="k8scli web console"
+                Description="Open the k8scli web console for your Kubernetes clusters"
+                Target="[INSTALLFOLDER]k8scli.exe"
+                Arguments="ui"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="K8scliUi.ico" />
+      <RegistryValue Root="HKCU" Key="Software\k8scli" Name="desktop" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
   </Fragment>
 </Wix>

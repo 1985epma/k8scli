@@ -4,6 +4,8 @@ set -eu
 
 PREFIX=/usr/local
 SHELL_NAME=zsh
+APP_DIR=""
+INSTALL_APP=1
 
 while [ "$#" -gt 0 ]; do
 	case "$1" in
@@ -15,8 +17,18 @@ while [ "$#" -gt 0 ]; do
 			SHELL_NAME="$2"
 			shift 2
 			;;
+		--app-dir)
+			APP_DIR="$2"
+			shift 2
+			;;
+		--no-app)
+			INSTALL_APP=0
+			shift
+			;;
 		-h|--help)
-			echo "Usage: $0 [--prefix <path>] [--shell zsh|bash|fish]"
+			echo "Usage: $0 [--prefix <path>] [--shell zsh|bash|fish] [--app-dir <path>] [--no-app]"
+			echo "  On macOS the k8scli-ui app (with its icon) is installed into ~/Applications,"
+			echo "  or --app-dir; --no-app skips it."
 			exit 0
 			;;
 		*)
@@ -51,6 +63,16 @@ printf 'Installed binary: %s\n' "$BIN_DIR/k8scli"
 # k8scli-ui is the same binary under another name: it opens the web console.
 ln -sf k8scli "$BIN_DIR/k8scli-ui"
 printf 'Installed launcher: %s\n' "$BIN_DIR/k8scli-ui"
+
+# macOS: a double-clickable k8scli-ui.app with the icon, in ~/Applications (no sudo needed).
+if [ "$INSTALL_APP" = 1 ] && [ "$(uname -s)" = Darwin ]; then
+	APP_DIR="${APP_DIR:-$HOME/Applications}"
+	bash "$ROOT_DIR/scripts/build-macos-app.sh" --binary "$BUILT_BIN" --version "$VERSION" --out "$TMP_DIR/app" >/dev/null
+	mkdir -p "$APP_DIR"
+	rm -rf "${APP_DIR:?}/k8scli-ui.app"
+	ditto "$TMP_DIR/app/k8scli-ui.app" "$APP_DIR/k8scli-ui.app"
+	printf 'Installed app: %s\n' "$APP_DIR/k8scli-ui.app"
+fi
 
 case "$SHELL_NAME" in
 	zsh)
