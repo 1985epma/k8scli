@@ -50,9 +50,12 @@
       <Component Id="K8scliTerminalComponent" Guid="*">
         <File Id="K8scliTerminal" Source="$(var.SourceTerminal)" Name="k8scli-terminal.cmd" KeyPath="yes" />
       </Component>
-      <Component Id="K8scliIconsComponent" Guid="*">
+      <!-- One file per component: WiX only accepts Guid="*" for components with a single file. -->
+      <Component Id="K8scliIconComponent" Guid="*">
         <File Id="K8scliIcoFile" Source="$(var.IconsDir)\k8scli.ico" Name="k8scli.ico" KeyPath="yes" />
-        <File Id="K8scliUiIcoFile" Source="$(var.IconsDir)\k8scli-ui.ico" Name="k8scli-ui.ico" />
+      </Component>
+      <Component Id="K8scliUiIconComponent" Guid="*">
+        <File Id="K8scliUiIcoFile" Source="$(var.IconsDir)\k8scli-ui.ico" Name="k8scli-ui.ico" KeyPath="yes" />
       </Component>
     </ComponentGroup>
   </Fragment>
