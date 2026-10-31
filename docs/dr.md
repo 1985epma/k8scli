@@ -264,6 +264,38 @@ compares each with its target.
 In the lab, `scripts/dr-lab.sh check-data` writes a heartbeat row to `shop-db`, and
 `scripts/dr-lab.sh check-data read` reads the newest one back after a restore.
 
+### A measured example (the lab)
+
+A full drill of the lab plan (`docs/examples/k8scli-dr.lab.yaml`) on a three-node kind cluster, run with
+`k8scli dr drill --plan ... --full --execute`, stopped the apps and both databases, powered off the three
+nodes, powered them on and started everything back in order:
+
+| Phase | Time |
+|-------|------|
+| Stop `web` and `api` | about 4 s each |
+| Hibernate `shop-db`, stop `legacy-db` | 5 s each |
+| `docker stop` of the workers, then the control plane | 0.3 s each, 3.3 s |
+| `docker start` until the Kubernetes API answers | 4 s |
+| Start `shop-db` until healthy | 48 s |
+| **Overall RTO (measured)** | **1 min 25 s** (target 15 min: pass) |
+
+A heartbeat row written to the database before the drill was still there afterwards. The RPO showed no
+figure, because the lab has no backup and the plan sets no RPO target.
+
+What this does **not** show: nothing was restored from a backup (that part is not in this version), a
+drain of real pods before the power-off was not exercised live (the apps and databases were already
+stopped, so the drain steps were skipped; it is covered by unit tests), and the cloud providers were not
+run (see [Not in this version](#not-in-this-version)).
+
+During a full shutdown the drain only evicts the pods of the namespaces the plan manages. Pods of other
+namespaces (`kube-system`, operators such as `cnpg-system`) are left alone and stop when the machine
+powers off, because many of them use `emptyDir` and would otherwise block the drain. Inside the plan's
+namespaces, a pod with `emptyDir` or without a controller is still refused. `k8scli dr nodes drain` keeps
+the full drain behaviour.
+
+After an interrupted run, `dr resume` reports the steps finished earlier as "already done in the previous
+run", and cancelling a run reports an abort, not a failed gate.
+
 ### Reading a report
 
 A report lists the plan, the context, when it ran, the timeline and, per app and database, the RTO and
