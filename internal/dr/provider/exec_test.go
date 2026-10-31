@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"errors"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -44,6 +45,11 @@ func TestOSExecRejectsArgumentsThatCouldSmuggleLines(t *testing.T) {
 }
 
 func TestOSExecRunsWithoutAShell(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		// echo is not a program on Windows, and the one Git for Windows puts on PATH is an MSYS
+		// binary that globs '*' itself. TestOSExecPassesArgumentsLiterallyOnEveryOS covers Windows.
+		t.Skip("echo is not a plain program on Windows")
+	}
 	// A shell would expand $HOME and split on ';'. Arguments must arrive literally.
 	out, err := testExec("echo").Run(context.Background(), "echo", "$HOME; id", "`id`", "*")
 	if err != nil {

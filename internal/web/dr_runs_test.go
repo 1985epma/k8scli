@@ -471,7 +471,7 @@ func TestDRResumeUsesTheScopeOfTheOriginalRun(t *testing.T) {
 
 	// The side file keeps what the engine's ledger does not: the scope.
 	info, err := os.Stat(filepath.Join(d.dir, "web-runs", id+".json"))
-	if err != nil || info.Mode().Perm() != 0o600 {
+	if err != nil || (permissionBitsMatter() && info.Mode().Perm() != 0o600) {
 		t.Fatalf("side file: %v %v", info, err)
 	}
 

@@ -665,6 +665,7 @@ func ExportDir(ctx context.Context, env *dr.Env, namespace, dir string, options 
 	if err != nil {
 		return nil, fmt.Errorf("invalid directory: %w", err)
 	}
+	// 0700/0600 are best effort on Windows (no Unix permission bits).
 	if err := os.MkdirAll(root, 0o700); err != nil {
 		return nil, fmt.Errorf("failed to create %s: %w", root, err)
 	}

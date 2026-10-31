@@ -301,6 +301,7 @@ func Save(dir string, report *Report) (jsonPath, markdownPath string, err error)
 	if err != nil {
 		return "", "", err
 	}
+	// 0700 is best effort on Windows (no Unix permission bits; see internal/dr/engine/files.go).
 	if err := os.MkdirAll(reports, 0o700); err != nil {
 		return "", "", fmt.Errorf("failed to create %s: %w", reports, err)
 	}

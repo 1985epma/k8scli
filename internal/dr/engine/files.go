@@ -13,6 +13,8 @@ import (
 	"sync"
 )
 
+// Modes are best effort: on Windows Go has no Unix permission bits (files report 0666, directories
+// 0777) and does not set NTFS ACLs, so the data directory is only as private as the user profile it lives in.
 const (
 	dirMode  = 0o700
 	fileMode = 0o600

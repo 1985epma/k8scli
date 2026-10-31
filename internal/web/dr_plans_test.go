@@ -150,10 +150,10 @@ func TestDRSavePlan(t *testing.T) {
 	}
 	file := filepath.Join(d.dir, "plans", "saved.yaml")
 	info, err := os.Stat(file)
-	if err != nil || info.Mode().Perm() != 0o600 {
+	if err != nil || (permissionBitsMatter() && info.Mode().Perm() != 0o600) {
 		t.Fatalf("plan file: %v %v", info, err)
 	}
-	if dirInfo, _ := os.Stat(filepath.Dir(file)); dirInfo.Mode().Perm() != 0o700 {
+	if dirInfo, _ := os.Stat(filepath.Dir(file)); permissionBitsMatter() && dirInfo.Mode().Perm() != 0o700 {
 		t.Errorf("plans directory permissions = %v", dirInfo.Mode().Perm())
 	}
 	if data, _ := os.ReadFile(file); string(data) != yaml {

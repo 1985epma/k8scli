@@ -399,6 +399,7 @@ func (d *drService) writeMeta(id string, meta webRunMeta) error {
 		return fmt.Errorf("invalid run id")
 	}
 	dir := d.sidecarDir()
+	// 0700/0600 are best effort on Windows (no Unix permission bits).
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
 	}

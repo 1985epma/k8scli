@@ -122,7 +122,7 @@ func TestTheLockNamesItsOwnerAndIsReleasedAfterwards(t *testing.T) {
 	if err != nil || info.PID != 4242 || info.RunID != "run-1" || info.Host != e.host {
 		t.Errorf("lock = %+v, %v", info, err)
 	}
-	if st, _ := os.Stat(e.lockPath("dev")); st.Mode().Perm() != 0o600 {
+	if st, _ := os.Stat(e.lockPath("dev")); permissionBitsMatter() && st.Mode().Perm() != 0o600 {
 		t.Errorf("lock mode = %v", st.Mode().Perm())
 	}
 

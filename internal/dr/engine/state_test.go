@@ -57,14 +57,14 @@ func TestFileStatePermissionsAndAtomicity(t *testing.T) {
 	if err := s.Save(context.Background(), "k", doc{Note: "x"}); err != nil {
 		t.Fatal(err)
 	}
-	if st, err := os.Stat(dir); err != nil || st.Mode().Perm() != 0o700 {
+	if st, err := os.Stat(dir); err != nil || (permissionBitsMatter() && st.Mode().Perm() != 0o700) {
 		t.Errorf("dir mode: %v %v", st, err)
 	}
 	entries, _ := os.ReadDir(dir)
 	if len(entries) != 1 || strings.HasPrefix(entries[0].Name(), ".tmp-") {
 		t.Fatalf("entries = %v", entries)
 	}
-	if st, _ := entries[0].Info(); st.Mode().Perm() != 0o600 {
+	if st, _ := entries[0].Info(); permissionBitsMatter() && st.Mode().Perm() != 0o600 {
 		t.Errorf("file mode = %v", st.Mode().Perm())
 	}
 }

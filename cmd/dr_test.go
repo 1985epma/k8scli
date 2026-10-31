@@ -128,7 +128,8 @@ func TestDRPlanShowMatchesTheGoldenFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v (run with UPDATE_GOLDEN=1 to create it)", err)
 	}
-	if h.out.String() != string(want) {
+	// A Windows checkout with autocrlf turns the golden file into CRLF; compare line endings as LF.
+	if h.out.String() != strings.ReplaceAll(string(want), "\r\n", "\n") {
 		t.Errorf("plan show changed:\n--- got ---\n%s\n--- want ---\n%s", h.out.String(), want)
 	}
 
@@ -463,7 +464,7 @@ func TestDRExportNeverWritesSecretsAndNeverOverwrites(t *testing.T) {
 			t.Errorf("%s contains a secret value", f.Name)
 		}
 	}
-	if info, _ := os.Stat(out); info.Mode().Perm() != 0o600 {
+	if info, _ := os.Stat(out); permissionBitsMatter() && info.Mode().Perm() != 0o600 {
 		t.Errorf("export file mode = %v", info.Mode().Perm())
 	}
 

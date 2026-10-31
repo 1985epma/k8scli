@@ -567,6 +567,7 @@ func Record(dir, actor string, res *Result) (string, error) {
 		return "", nil
 	}
 	folder := filepath.Join(dir, "chaos")
+	// 0700/0600 are best effort on Windows (no Unix permission bits).
 	if err := os.MkdirAll(folder, 0o700); err != nil {
 		return "", fmt.Errorf("create %s: %w", folder, err)
 	}

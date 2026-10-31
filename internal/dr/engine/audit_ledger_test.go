@@ -81,7 +81,7 @@ func TestAuditAndLedgerFilesArePrivate(t *testing.T) {
 			t.Errorf("%s: %v", tc.path, err)
 			continue
 		}
-		if st.Mode().Perm() != tc.mode {
+		if permissionBitsMatter() && st.Mode().Perm() != tc.mode {
 			t.Errorf("%s mode = %v; want %v", tc.path, st.Mode().Perm(), tc.mode)
 		}
 	}

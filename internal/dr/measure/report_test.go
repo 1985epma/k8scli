@@ -92,7 +92,8 @@ func TestReportMarkdownGolden(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v (run `go test -run Golden -update` to create it)", err)
 	}
-	if got != string(want) {
+	// A Windows checkout with autocrlf turns the golden file into CRLF; compare line endings as LF.
+	if got != strings.ReplaceAll(string(want), "\r\n", "\n") {
 		t.Errorf("the Markdown report changed; if intended, run `go test -run Golden -update`.\n--- got ---\n%s", got)
 	}
 }

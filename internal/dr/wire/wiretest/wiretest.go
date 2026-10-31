@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	goruntime "runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -292,7 +293,11 @@ func NewStack(t testing.TB, opts wire.Options, clusters map[string]*Cluster, exe
 	}
 	if opts.Sleep == nil {
 		// No real waiting in tests, but a cancelled context still stops a run.
-		opts.Sleep = func(ctx context.Context, _ time.Duration) error { return ctx.Err() }
+		// It yields so that a poller never starves the goroutine it is waiting for.
+		opts.Sleep = func(ctx context.Context, _ time.Duration) error {
+			goruntime.Gosched()
+			return ctx.Err()
+		}
 	}
 	opts.Clients = func(contextName string) (kubernetes.Interface, dynamic.Interface, error) {
 		c, ok := clusters[contextName]
@@ -308,22 +313,31 @@ func NewStack(t testing.TB, opts wire.Options, clusters map[string]*Cluster, exe
 	return stack
 }
 
-// stepClock is a clock that moves one second forward every time it is read, so two runs started
-// back to back have different times (and sortable ids) and tests do not depend on the machine's speed.
+// stepClock is a clock that moves a millisecond forward every time it is read, so two readings never
+// tie (runs and steps started back to back are ordered) and tests do not depend on the machine's speed.
+//
+// The step is deliberately tiny. Anything that polls with the default Sleep (which returns at once, so
+// nothing really waits) reads the clock in a tight loop, and each reading spends fake time. With a
+// one-second step a 30 minute deadline lasted only 1800 readings, which a slower machine (a Windows CI
+// runner writing ledgers to disk) used up before the system under test had finished its work, so a
+// drill ended "not-recovered" with no failure. A millisecond step makes the same deadline last 1.8
+// million readings.
 type stepClock struct {
 	mu sync.Mutex
 	t  time.Time
 }
 
+const stepClockStep = time.Millisecond
+
 func newStepClock() *stepClock {
 	return &stepClock{t: time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)}
 }
 
-// Now returns the current fake time and advances it by one second.
+// Now returns the current fake time and advances it by one millisecond.
 func (c *stepClock) Now() time.Time {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.t = c.t.Add(time.Second)
+	c.t = c.t.Add(stepClockStep)
 	return c.t
 }
 

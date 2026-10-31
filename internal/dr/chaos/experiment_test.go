@@ -478,10 +478,10 @@ func TestRecordWritesPrivateFilesAndAnAuditLine(t *testing.T) {
 		t.Fatal(err)
 	}
 	info, err := os.Stat(file)
-	if err != nil || info.Mode().Perm() != 0o600 {
+	if err != nil || (permissionBitsMatter() && info.Mode().Perm() != 0o600) {
 		t.Fatalf("result file: %v %v", err, info)
 	}
-	if dirInfo, _ := os.Stat(filepath.Join(dir, "chaos")); dirInfo.Mode().Perm() != 0o700 {
+	if dirInfo, _ := os.Stat(filepath.Join(dir, "chaos")); permissionBitsMatter() && dirInfo.Mode().Perm() != 0o700 {
 		t.Errorf("directory mode %v", dirInfo.Mode().Perm())
 	}
 	var back Result

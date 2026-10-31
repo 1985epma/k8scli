@@ -304,6 +304,7 @@ func (s *Server) handleDRSavePlan(w http.ResponseWriter, r *http.Request) {
 // plan is never replaced, even by a concurrent save (the file is hard-linked into place).
 func (d *drService) writePlanFile(name string, data []byte, overwrite bool) (created bool, err error) {
 	dir := d.plansDir()
+	// 0700/0600 are best effort on Windows, which has no Unix permission bits and no ACLs set by Go.
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return false, fmt.Errorf("cannot create the plans directory: %w", err)
 	}
