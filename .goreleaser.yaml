@@ -41,6 +41,11 @@ archives:
     files:
       - README.md
       - LICENSE
+      # Windows has no symlinks, so its zip carries a shim that runs `k8scli.exe ui`.
+      # The src is empty on other systems: GoReleaser logs "no files matched" for
+      # their archives, which is expected and harmless.
+      - src: '{{ if eq .Os "windows" }}windows/k8scli-ui.cmd{{ end }}'
+        dst: k8scli-ui.cmd
 
   # Standalone binaries (k8scli_<version>_<os>_<arch>[.exe]) uploaded as-is,
   # replacing the old shell step that copied files out of dist/ by hand.
@@ -127,9 +132,12 @@ brews:
     license: MIT
     install: |
       bin.install "k8scli"
+      bin.install_symlink "k8scli" => "k8scli-ui"
       generate_completions_from_executable(bin/"k8scli", "completion")
     test: |
       assert_match version.to_s, shell_output("#{bin}/k8scli version")
+      assert_predicate bin/"k8scli-ui", :symlink?
+      assert_match "web console", shell_output("#{bin}/k8scli-ui --help")
 
 nfpms:
   - id: default
@@ -141,6 +149,11 @@ nfpms:
     description: Kubernetes CLI helper tool
     license: MIT
     homepage: https://github.com/1985epma/k8scli
+    contents:
+      # k8scli-ui is the same binary under another name: it opens the web console.
+      - src: /usr/bin/k8scli
+        dst: /usr/bin/k8scli-ui
+        type: symlink
     formats:
       - deb
       - rpm

@@ -22,6 +22,19 @@ cd "$ROOT_DIR"
 
 case "$MODE" in
 	snapshot)
+		# A local snapshot should not need the whole release toolchain: skip the
+		# steps whose tool is missing (SBOM needs syft, signing cosign, images docker).
+		skip=""
+		add_skip() { skip="${skip:+$skip,}$1"; }
+		command -v syft >/dev/null 2>&1 || add_skip sbom
+		command -v cosign >/dev/null 2>&1 || add_skip sign
+		if ! { command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; }; then
+			add_skip docker
+		fi
+		if [ -n "$skip" ]; then
+			echo "Skipping: $skip (tool not available locally)" >&2
+			exec goreleaser release --snapshot --clean --skip="$skip"
+		fi
 		exec goreleaser release --snapshot --clean
 		;;
 	release)

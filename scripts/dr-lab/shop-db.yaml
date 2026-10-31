@@ -1,0 +1,19 @@
+# tier 0: a small CloudNativePG Postgres cluster. Apply it after the operator is running.
+# The operator's default Postgres image is used, so it stays in step with the pinned operator version.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: shop-db
+  namespace: shop
+  labels: {app.kubernetes.io/part-of: shop, tier: "0"}
+spec:
+  instances: 2
+  storage:
+    size: 1Gi
+  resources:
+    requests: {cpu: 50m, memory: 192Mi}
+    limits: {memory: 384Mi}
+  bootstrap:
+    initdb:
+      database: shop
+      owner: shop
