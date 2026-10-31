@@ -1,0 +1,67 @@
+# Disaster-recovery plan for the local lab (scripts/dr-lab.sh up).
+#
+# The lab is a three-node kind cluster. Namespace `shop` has:
+#   tier 0  shop-db (CloudNativePG, 2 instances) and legacy-db (plain StatefulSet, 2 replicas)
+#   tier 1  api (Deployment, 2 replicas)
+#   tier 2  web (Deployment, 2 replicas, with an HPA)
+#   a CronJob (shop-report) that the prepare phase suspends and resumes
+#
+# Start it:    scripts/dr-lab.sh up
+# Check it:    k8scli dr plan validate docs/examples/k8scli-dr.lab.yaml
+# Rehearse:    k8scli dr down --plan docs/examples/k8scli-dr.lab.yaml      # a dry run unless --execute
+version: 1
+name: shop-lab
+context: kind-k8scli-lab
+
+# drContext is the standby cluster, used by `dr diff` and the capacity check. The lab has none.
+# drContext: kind-k8scli-standby
+
+targets:
+  rto: 15m
+  rpo: 1h
+
+apps:
+  - name: api
+    namespace: shop
+    workloads: [api]
+    tier: 1
+    health:
+      kind: pods-ready
+      timeout: 5m
+    rto: 10m
+
+  - name: web
+    namespace: shop
+    workloads: [web]
+    tier: 2
+    dependsOn: [api]
+    health:
+      kind: pods-ready
+      timeout: 5m
+
+databases:
+  # CloudNativePG: stopped by its declarative hibernation, started again afterwards.
+  # The lab has no backup storage, so there is no maxBackupAge check.
+  - name: shop-db
+    namespace: shop
+    kind: cnpg
+    ref: shop-db
+    tier: 0
+    rto: 10m
+
+  # A plain StatefulSet: scaled down in reverse ordinal order, restored from the saved replica count.
+  - name: legacy-db
+    namespace: shop
+    kind: statefulset
+    ref: legacy-db
+    tier: 0
+
+# kind nodes are Docker containers, so the whole cluster can be powered off and on.
+provider:
+  kind: kind
+  params:
+    name: k8scli-lab
+
+safety:
+  # Drills and destructive runs are allowed here without extra gates because this is a lab.
+  labOnly: true

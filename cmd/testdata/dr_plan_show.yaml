@@ -1,0 +1,34 @@
+version: 1
+name: shop-lab
+context: kind-lab
+drContext: kind-standby
+targets:
+  rto: 30m
+  rpo: 24h
+apps:
+  - name: web
+    namespace: shop
+    workloads: [web]
+    tier: 2
+    dependsOn: [api]
+    health:
+      kind: http
+      url: http://localhost:8080/healthz
+      status: 200
+  - name: api
+    namespace: shop
+    workloads: [api]
+    tier: 1
+databases:
+  - name: shop-db
+    namespace: shop
+    kind: cnpg
+    ref: shop-db
+    tier: 0
+    maxBackupAge: 24h
+provider:
+  kind: kind
+  params:
+    name: lab
+safety:
+  labOnly: true

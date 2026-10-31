@@ -43,11 +43,14 @@ class K8scli < Formula
 
   def install
     system "go", "build", *std_go_args(ldflags: "-s -w"), "."
+    bin.install_symlink "k8scli" => "k8scli-ui"
     generate_completions_from_executable(bin/"k8scli", "completion")
   end
 
   test do
     assert_match "k8scli version", shell_output("#{bin}/k8scli version")
+    assert_predicate bin/"k8scli-ui", :symlink?
+    assert_match "web console", shell_output("#{bin}/k8scli-ui --help")
   end
 end
 FORMULA

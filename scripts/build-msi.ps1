@@ -1,6 +1,9 @@
 param(
     [string]$Version = "0.1.0",
     [string]$SourceExe = "",
+    [string]$SourceLauncher = "",
+    [string]$SourceTerminal = "",
+    [string]$IconsDir = "",
     [string]$OutputDir = ""
 )
 
@@ -24,11 +27,34 @@ if ([string]::IsNullOrWhiteSpace($SourceExe)) {
     $SourceExe = Join-Path $repoRoot "dist/k8scli_windows_amd64_v1/k8scli.exe"
 }
 
+if ([string]::IsNullOrWhiteSpace($SourceLauncher)) {
+    # The k8scli-ui.cmd shim lives in the repository, next to the WiX sources.
+    $SourceLauncher = Join-Path $repoRoot "windows/k8scli-ui.cmd"
+}
+
+if ([string]::IsNullOrWhiteSpace($SourceTerminal)) {
+    # The "k8scli (terminal)" Start menu shortcut runs this script.
+    $SourceTerminal = Join-Path $repoRoot "windows/k8scli-terminal.cmd"
+}
+
+if ([string]::IsNullOrWhiteSpace($IconsDir)) {
+    # Needs k8scli.ico and k8scli-ui.ico: the shortcuts and "Apps & features" use them.
+    $IconsDir = Join-Path $repoRoot "assets/icons"
+}
+
 if ([string]::IsNullOrWhiteSpace($OutputDir)) {
     $OutputDir = Join-Path $repoRoot "dist"
 }
 
 $SourceExe = (Resolve-Path $SourceExe).Path
+$SourceLauncher = (Resolve-Path $SourceLauncher).Path
+$SourceTerminal = (Resolve-Path $SourceTerminal).Path
+$IconsDir = (Resolve-Path $IconsDir).Path
+foreach ($icon in @("k8scli.ico", "k8scli-ui.ico")) {
+    if (-not (Test-Path (Join-Path $IconsDir $icon))) {
+        throw "Icon $icon not found in $IconsDir"
+    }
+}
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 $OutputDir = (Resolve-Path $OutputDir).Path
 
@@ -50,6 +76,9 @@ $outputPath = Join-Path $OutputDir "k8scli_${Version}_windows_amd64.msi"
     -arch x64 `
     -d Version=$msiVersion `
     -d SourceExe=$SourceExe `
+    -d SourceLauncher=$SourceLauncher `
+    -d SourceTerminal=$SourceTerminal `
+    -d IconsDir=$IconsDir `
     -o $outputPath
 
 if ($LASTEXITCODE -ne 0) {

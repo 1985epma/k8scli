@@ -2,6 +2,18 @@
 
 Este diretorio contem a definicao WiX do instalador MSI do `k8scli`.
 O instalador copia `k8scli.exe` para `Program Files\k8scli` e adiciona a pasta ao `PATH` do sistema.
+Tambem instala os atalhos do menu Iniciar (pasta **k8scli**), cada um com o seu icone:
+
+- **k8scli web console**: roda `k8scli.exe ui` e abre o console web no navegador (icone `k8scli-ui.ico`);
+- **k8scli (terminal)**: abre um prompt com o `k8scli` pronto para uso (icone `k8scli.ico`).
+
+Um atalho para a Area de Trabalho existe, mas vem **desligado**. Para instalar com ele:
+
+```powershell
+msiexec /i k8scli_0.1.0_windows_amd64.msi ADDLOCAL=MainFeature,DesktopShortcutFeature
+```
+
+O icone do "Aplicativos e recursos" (ARP) e o do proprio `k8scli.exe` vem de `assets/icons/`.
 
 ## Requisitos
 
@@ -22,6 +34,9 @@ Por padrao o script usa o executavel gerado pelo GoReleaser (`make package`):
 ```text
 dist/k8scli_windows_amd64_v1/k8scli.exe
 ```
+
+Os arquivos `assets/icons/k8scli.ico` e `assets/icons/k8scli-ui.ico` precisam existir: o script
+`build-msi.ps1` recusa continuar sem eles (use `-IconsDir` para apontar outra pasta).
 
 ## Como gerar o MSI
 

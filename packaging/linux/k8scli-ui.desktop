@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=k8scli web console
+GenericName=Kubernetes web console
+Comment=Open the k8scli web console for your Kubernetes clusters
+Exec=k8scli-ui
+Icon=k8scli-ui
+# A terminal window shows the logs and Ctrl+C (or closing it) stops the console.
+Terminal=true
+StartupNotify=false
+Categories=Development;
+Keywords=kubernetes;k8s;kubectl;cluster;pods;helm;console;dashboard;

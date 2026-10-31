@@ -6,11 +6,16 @@ before:
   hooks:
     - go mod tidy
     - go test ./...
+    # Windows icon and version info: go-winres writes rsrc_windows_<arch>.syso next to main.go, and the
+    # Go linker picks them up for the windows builds only. They are gitignored; plain `go build` does
+    # not need them.
+    - go run github.com/tc-hib/go-winres@v0.3.3 make --in packaging/winres/winres.json --out rsrc --arch amd64,arm64 --file-version {{ .Major }}.{{ .Minor }}.{{ .Patch }}.0 --product-version {{ .Version }}
 
 builds:
   - id: k8scli
     binary: k8scli
-    main: ./main.go
+    # The package, not ./main.go: building a single file would leave out rsrc_windows_*.syso (the Windows icon).
+    main: .
     env:
       - CGO_ENABLED=0
     goos:
@@ -22,6 +27,16 @@ builds:
       - arm64
     flags:
       - -trimpath
+    hooks:
+      post:
+        # macOS only (the script ignores other systems): wraps the fresh binary in k8scli-ui.app, a
+        # double-clickable app with the icon, and zips it per architecture. The zips are attached to the
+        # release below. Built on Linux the app is unsigned; on a Mac it gets an ad-hoc signature.
+        - cmd: >-
+            scripts/build-macos-app.sh --os {{ .Os }} --binary {{ .Path }} --version {{ .Version }}
+            --out dist/macos-app/{{ .Arch }}
+            --zip dist/macos-app/k8scli-ui_{{ .Version }}_macOS_{{ .Arch }}.zip
+          output: true
     ldflags:
       - -s -w
       - -X github.com/1985epma/k8scli/cmd.version={{ .Version }}
@@ -41,6 +56,11 @@ archives:
     files:
       - README.md
       - LICENSE
+      # Windows has no symlinks, so its zip carries a shim that runs `k8scli.exe ui`.
+      # The src is empty on other systems: GoReleaser logs "no files matched" for
+      # their archives, which is expected and harmless.
+      - src: '{{ if eq .Os "windows" }}windows/k8scli-ui.cmd{{ end }}'
+        dst: k8scli-ui.cmd
 
   # Standalone binaries (k8scli_<version>_<os>_<arch>[.exe]) uploaded as-is,
   # replacing the old shell step that copied files out of dist/ by hand.
@@ -53,6 +73,8 @@ archives:
 
 checksum:
   name_template: 'checksums.txt'
+  extra_files:
+    - glob: dist/macos-app/*.zip
 
 # Keyless signature of the checksum file (needs `id-token: write` in the workflow).
 signs:
@@ -90,6 +112,8 @@ release:
     name: k8scli
   draft: false
   prerelease: auto
+  extra_files:
+    - glob: dist/macos-app/*.zip
 
 dockers_v2:
   - id: k8scli
@@ -127,9 +151,12 @@ brews:
     license: MIT
     install: |
       bin.install "k8scli"
+      bin.install_symlink "k8scli" => "k8scli-ui"
       generate_completions_from_executable(bin/"k8scli", "completion")
     test: |
       assert_match version.to_s, shell_output("#{bin}/k8scli version")
+      assert_predicate bin/"k8scli-ui", :symlink?
+      assert_match "web console", shell_output("#{bin}/k8scli-ui --help")
 
 nfpms:
   - id: default
@@ -141,6 +168,102 @@ nfpms:
     description: Kubernetes CLI helper tool
     license: MIT
     homepage: https://github.com/1985epma/k8scli
+    contents:
+      # k8scli-ui is the same binary under another name: it opens the web console.
+      - src: /usr/bin/k8scli
+        dst: /usr/bin/k8scli-ui
+        type: symlink
+
+      # Menu entries: the web console and a terminal for the CLI.
+      - src: packaging/linux/k8scli-ui.desktop
+        dst: /usr/share/applications/k8scli-ui.desktop
+        file_info:
+          mode: 0644
+      - src: packaging/linux/k8scli.desktop
+        dst: /usr/share/applications/k8scli.desktop
+        file_info:
+          mode: 0644
+
+      # Icons in the freedesktop hicolor theme, one per size, plus scalable and symbolic SVGs.
+      - src: assets/icons/k8scli-ui-16.png
+        dst: /usr/share/icons/hicolor/16x16/apps/k8scli-ui.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-ui-24.png
+        dst: /usr/share/icons/hicolor/24x24/apps/k8scli-ui.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-ui-32.png
+        dst: /usr/share/icons/hicolor/32x32/apps/k8scli-ui.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-ui-48.png
+        dst: /usr/share/icons/hicolor/48x48/apps/k8scli-ui.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-ui-64.png
+        dst: /usr/share/icons/hicolor/64x64/apps/k8scli-ui.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-ui-128.png
+        dst: /usr/share/icons/hicolor/128x128/apps/k8scli-ui.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-ui-256.png
+        dst: /usr/share/icons/hicolor/256x256/apps/k8scli-ui.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-ui-512.png
+        dst: /usr/share/icons/hicolor/512x512/apps/k8scli-ui.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-ui.svg
+        dst: /usr/share/icons/hicolor/scalable/apps/k8scli-ui.svg
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-16.png
+        dst: /usr/share/icons/hicolor/16x16/apps/k8scli.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-24.png
+        dst: /usr/share/icons/hicolor/24x24/apps/k8scli.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-32.png
+        dst: /usr/share/icons/hicolor/32x32/apps/k8scli.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-48.png
+        dst: /usr/share/icons/hicolor/48x48/apps/k8scli.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-64.png
+        dst: /usr/share/icons/hicolor/64x64/apps/k8scli.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-128.png
+        dst: /usr/share/icons/hicolor/128x128/apps/k8scli.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-256.png
+        dst: /usr/share/icons/hicolor/256x256/apps/k8scli.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-512.png
+        dst: /usr/share/icons/hicolor/512x512/apps/k8scli.png
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli.svg
+        dst: /usr/share/icons/hicolor/scalable/apps/k8scli.svg
+        file_info:
+          mode: 0644
+      - src: assets/icons/k8scli-symbolic.svg
+        dst: /usr/share/icons/hicolor/symbolic/apps/k8scli-symbolic.svg
+        file_info:
+          mode: 0644
+    scripts:
+      postinstall: packaging/linux/postinst.sh
+      postremove: packaging/linux/postrm.sh
     formats:
       - deb
       - rpm

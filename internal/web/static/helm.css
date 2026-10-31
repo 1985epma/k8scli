@@ -1,0 +1,101 @@
+/* Apps (Helm): catalog cards, the install form and the release drawer. Tokens only,
+   so both themes (light and the black dark one) work. */
+
+.hm-section { display: flex; flex-direction: column; gap: 12px; }
+.hm-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hm-section-head h2 { font-size: 16px; }
+
+.hm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.hm-card { display: flex; flex-direction: column; gap: 8px; padding: 14px; min-width: 0; }
+.hm-card-top { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.hm-card-icon { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
+.hm-card h3 { font-size: 14px; }
+/* Three lines at most, so 24 cards keep the same height. */
+.hm-card-desc { flex: 1; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.hm-card-note { margin: -4px 0 0; color: var(--accent); }
+.hm-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.hm-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hm-docs { white-space: nowrap; }
+.hm-recommended { border-color: var(--accent); }
+
+/* The release name opens its details. */
+.hm-link { height: auto; padding: 2px 0; color: var(--accent); background: none; border: 0; }
+.hm-link:hover { text-decoration: underline; background: none; }
+
+/* A disabled button swallows hover, so the tooltip sits on its wrapper. */
+.hm-tip { display: inline-flex; }
+
+/* install form */
+.modal.hm-wide { width: min(600px, calc(100% - 32px)); top: 6vh; max-height: 88vh; }
+.modal.hm-wide .modal-head { position: sticky; top: 0; z-index: 1; background: var(--surface); }
+.modal.hm-wide .modal-foot { position: sticky; bottom: 0; z-index: 1; background: var(--surface); }
+.modal.hm-wide .field { width: 100%; }
+.hm-grid-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 520px) { .hm-grid-form { grid-template-columns: minmax(0, 1fr); } }
+.hm-field { min-width: 0; }
+.hm-field small { font-weight: 400; }
+.hm-field-bool { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; }
+.hm-field-bool small { padding-left: 23px; }
+.hm-errors { margin: 0; padding: 0; list-style: none; }
+.hm-errors:empty { display: none; }
+ul.hm-errors { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid var(--err-line); border-radius: 8px; background: var(--err-soft); color: var(--err); font-size: 12.5px; }
+
+/* release drawer */
+.hm-block { display: flex; flex-direction: column; gap: 8px; }
+.hm-block h4 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.hm-notes { max-height: 260px; margin: 0; padding: 10px 12px; overflow: auto; border-radius: 8px; background: var(--neutral-soft); font: 12px/1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.hm-mini td, .hm-mini th { padding: 6px 10px; white-space: normal; overflow-wrap: anywhere; }
+.hm-mini { border: 1px solid var(--line); border-radius: 8px; }
+.hm-res { margin: 0; padding: 0; list-style: none; max-height: 220px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+.hm-res li { display: flex; align-items: baseline; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--line); min-width: 0; }
+.hm-res li:last-child { border-bottom: 0; }
+.hm-kind { flex: none; min-width: 7.5em; color: var(--muted); font-size: 12px; }
+
+/* ---------- catalog: filter, chips, groups ---------- */
+.hm-filter { position: relative; display: block; max-width: 440px; }
+.hm-filter .icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.hm-filter .field { width: 100%; padding-left: 32px; }
+.hm-chips-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.hm-count { margin-left: 6px; opacity: .7; }
+.hm-group { display: flex; flex-direction: column; gap: 8px; }
+.hm-group-title { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.hm-note { display: flex; align-items: center; gap: 8px; margin: 0; }
+.hm-flash { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Artifact Hub search ---------- */
+.hm-hub-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-color: var(--accent); }
+.hm-hub-head { display: flex; align-items: flex-start; gap: 12px; }
+.hm-hub-head h2 { font-size: 16px; }
+.hm-hub-head p { margin: 2px 0 0; }
+.hm-hub-search { position: relative; display: block; }
+.hm-hub-search .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.hm-hub-search .field { width: 100%; height: 40px; padding-left: 36px; font-size: 15px; }
+.hm-results { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 8px; }
+.hm-hit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.hm-hit:last-child { border-bottom: 0; }
+.hm-hit-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.hm-hit-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.hm-hit-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.hm-hit-desc { margin: 0; font-size: 13px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hm-hit-sec { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.hm-hit-reason { margin: 0; }
+.hm-hit-act { display: flex; align-items: flex-start; gap: 8px; }
+.hm-more { display: flex; justify-content: center; }
+@media (max-width: 640px) { .hm-hit { grid-template-columns: minmax(0, 1fr); } .hm-hit-act { flex-wrap: wrap; } }
+
+/* Severity: critical and high stand out, medium and low stay quiet. */
+.hm-sev { font-variant-numeric: tabular-nums; }
+.hm-sev-critical { background: var(--err); color: var(--surface); font-weight: 700; }
+.hm-sev-critical::before { display: none; }
+.hm-sev-high { border: 1px solid var(--err-line); font-weight: 600; }
+
+/* ---------- community chart form ---------- */
+.hm-settings { display: flex; flex-direction: column; gap: 8px; }
+.hm-toggle { align-self: flex-start; padding-left: 4px; color: var(--ink); }
+.hm-area { height: auto; min-height: 112px; padding: 8px 10px; resize: vertical; line-height: 1.5; font-family: var(--mono); font-size: 12.5px; }
+
+/* ---------- review dialog additions (confirmChange) ---------- */
+.f-digest { display: flex; flex-direction: column; gap: 4px; }
+.f-digest-value { padding: 5px 9px; border-radius: 6px; background: var(--neutral-soft); font-size: 11.5px; overflow-wrap: anywhere; word-break: break-all; }
+.f-phrase { padding: 6px 10px; border-radius: 6px; background: var(--surface); border: 1px dashed var(--muted); user-select: all; overflow-wrap: anywhere; }

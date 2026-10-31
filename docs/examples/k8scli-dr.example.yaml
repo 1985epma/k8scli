@@ -1,0 +1,88 @@
+# Disaster-recovery plan: a generic, commented template. Copy it, rename it and edit every value.
+#
+# Every field below is part of the schema (version 1). Unknown fields are errors. Durations are Go
+# durations such as "30m" or "4h". The file never holds credentials or Secret values.
+#
+# Check it:  k8scli dr plan validate k8scli-dr.yaml
+version: 1
+name: payments-prod-dr
+
+# The kubeconfig context the plan acts on. A context whose name contains "prod" is treated as
+# production: real runs need its name typed as confirmation.
+context: eks-prod-us-east-1
+
+# The standby cluster. Optional: used by `dr diff` (drift) and the capacity check, and by failover
+# helpers. Leave it out when you have none.
+drContext: eks-dr-sa-east-1
+
+# Default objectives, used when an app or database does not set its own.
+targets:
+  rto: 1h      # how long recovery may take
+  rpo: 15m     # how much recent data may be lost
+
+apps:
+  - name: checkout
+    namespace: payments
+    # Limit the app to some Deployments or StatefulSets. Empty means every workload in the
+    # namespace that is not a database of this plan.
+    workloads: [checkout-web, checkout-worker]
+    # Tier 0 starts first and stops last. Higher tiers start later.
+    tier: 2
+    # Apps that must be healthy before this one starts (apps only; databases are ordered by tier).
+    dependsOn: [catalog]
+    # What "the app is back" means. kind is "pods-ready" (default) or "http".
+    health:
+      kind: http
+      url: https://checkout.example.com/healthz   # only http and https are accepted
+      status: 200                                 # expected status code
+      timeout: 10m
+    rto: 30m
+    rpo: 5m
+
+  - name: catalog
+    namespace: payments
+    tier: 1
+    health:
+      kind: pods-ready
+      timeout: 10m
+
+databases:
+  # CloudNativePG: hibernated on shutdown, started again on startup.
+  - name: payments-db
+    namespace: payments
+    kind: cnpg
+    ref: payments-db            # name of the CNPG Cluster
+    tier: 0
+    # Refuse to stop it when the newest backup is older than this.
+    maxBackupAge: 24h
+    rto: 20m
+    rpo: 15m
+
+  # A plain StatefulSet: scaled to zero in reverse ordinal order. Prefer an operator, and take a
+  # logical backup first; a StatefulSet is stopped without any application-level checkpoint.
+  - name: legacy-cache
+    namespace: payments
+    kind: statefulset
+    ref: legacy-cache
+    tier: 0
+
+# How nodes or the whole cluster are powered. Optional. kind is one of:
+#   kind            params: name
+#   minikube        params: profile
+#   aks             params: resourceGroup, name, subscription (optional)
+#   eks-nodegroup   params: cluster, nodegroup, region, profile (optional)
+#   gke-nodepool    params: cluster, nodepool, location, project
+#   docker-desktop  no params (cannot be powered by a command; a manual step explains it)
+#   manual          no params (the run stops with instructions; `resume` continues after you act)
+provider:
+  kind: eks-nodegroup
+  params:
+    cluster: payments-prod
+    nodegroup: workers
+    region: us-east-1
+
+safety:
+  # Set true only for a lab context where drills may run without extra gates.
+  labOnly: false
+  # Default maxBackupAge for databases that do not set their own.
+  requireBackupMaxAge: 24h

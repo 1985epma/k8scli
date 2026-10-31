@@ -2,6 +2,7 @@ BIN := k8scli
 GO ?= go
 ARGS ?= help
 PREFIX ?= /usr/local
+GOBIN_DIR := $(or $(shell $(GO) env GOBIN),$(shell $(GO) env GOPATH)/bin)
 SHELL_NAME ?= zsh
 
 MODULE := github.com/1985epma/k8scli
@@ -13,7 +14,7 @@ LDFLAGS := -s -w \
 	-X $(MODULE)/cmd.commit=$(COMMIT) \
 	-X $(MODULE)/cmd.date=$(DATE)
 
-.PHONY: help build run install install-local completions package release-snapshot clean fmt fmt-check vet lint test cover tidy vulncheck gosec ci docker msi-help
+.PHONY: help build run install install-local app completions package release-snapshot clean fmt fmt-check vet lint test cover tidy vulncheck gosec ci docker msi-help
 
 help:
 	@printf "Targets available:\n"
@@ -30,7 +31,8 @@ help:
 	@printf "  make gosec              Run gosec\n"
 	@printf "  make ci                 Everything the CI runs locally (fmt-check, vet, lint, test)\n"
 	@printf "  make docker             Build the container image from source\n"
-	@printf "  make install            Install the binary into GOPATH/bin\n"
+	@printf "  make install            Install the binary (and the k8scli-ui launcher) into GOPATH/bin\n"
+	@printf "  make app                Build dist/k8scli-ui.app, the macOS app with the icon (macOS only)\n"
 	@printf "  make completions        Generate shell completion files in dist/completions\n"
 	@printf "  make install-local      Install binary and shell completion locally\n"
 	@printf "  make package            Build release artifacts with GoReleaser snapshot\n"
@@ -46,9 +48,13 @@ run:
 
 install:
 	$(GO) install -trimpath -ldflags "$(LDFLAGS)" .
+	ln -sf $(BIN) "$(GOBIN_DIR)/$(BIN)-ui"
 
 install-local:
 	./scripts/install.sh --prefix "$(PREFIX)" --shell "$(SHELL_NAME)"
+
+app: build
+	./scripts/build-macos-app.sh --binary ./$(BIN) --version "$(VERSION)" --out dist --zip dist/k8scli-ui_macOS.zip
 
 completions: build
 	mkdir -p dist/completions

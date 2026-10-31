@@ -5,6 +5,7 @@ package kubeconfig
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -54,6 +55,24 @@ func (l Loader) RESTConfig() (*rest.Config, error) {
 		return nil, fmt.Errorf("failed to build config: %w", err)
 	}
 	return config, nil
+}
+
+// RESTConfigFor builds a client configuration for the named context without
+// touching the kubeconfig file, so a long-running process can talk to a
+// context other than the current one.
+func (l Loader) RESTConfigFor(contextName string) (*rest.Config, error) {
+	overrides := &clientcmd.ConfigOverrides{CurrentContext: contextName}
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(l.rules(), overrides).ClientConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build config for context %q: %w", contextName, err)
+	}
+	return config, nil
+}
+
+// Paths lists the kubeconfig files that are read, in precedence order. The
+// files may not exist yet.
+func (l Loader) Paths() []string {
+	return l.rules().GetLoadingPrecedence()
 }
 
 // CurrentContext returns the name of the current context, or "" when unknown.
@@ -129,4 +148,12 @@ func (l Loader) UseContext(name string) error {
 		return fmt.Errorf("failed to save kubeconfig: %w", err)
 	}
 	return nil
+}
+
+// LooksLikeProduction reports whether a context name suggests production. It is a heuristic on the
+// name only (anything containing "prod", case-insensitive), shared by the CLI confirmation, the web
+// console gate and the DR module so they never disagree. A production context that is not named
+// that way is not detected.
+func LooksLikeProduction(contextName string) bool {
+	return strings.Contains(strings.ToLower(contextName), "prod")
 }
