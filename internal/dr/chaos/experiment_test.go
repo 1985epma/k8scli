@@ -493,7 +493,7 @@ func TestRecordWritesPrivateFilesAndAnAuditLine(t *testing.T) {
 	if err != nil || !strings.Contains(string(audit), `"actor":"ana"`) || !strings.Contains(string(audit), res.ID) {
 		t.Errorf("audit = %q (%v)", audit, err)
 	}
-	if info, _ := os.Stat(filepath.Join(dir, "chaos", "audit.jsonl")); info.Mode().Perm() != 0o600 {
+	if info, _ := os.Stat(filepath.Join(dir, "chaos", "audit.jsonl")); permissionBitsMatter() && info.Mode().Perm() != 0o600 {
 		t.Errorf("audit mode %v", info.Mode().Perm())
 	}
 
