@@ -2,7 +2,7 @@
 
 # Build from source. The release image published to GHCR is built by GoReleaser
 # from Dockerfile.goreleaser.
-FROM golang:1.26 AS build
+FROM golang:1.27 AS build
 
 WORKDIR /src
 
